@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+  payment-app:
+    container_name: payment
+    build: .
+    ports:
+      - 8020:80
+    environment:
+      - WEB_DOCUMENT_ROOT=/var/www/app/public
+    volumes:
+      - ./:/var/www/app
+    networks:
+      - payment-network
+    links:
+      - mysql:mysql
+    depends_on:
+      - mysql
+  mysql:
+    container_name: payment_host
+    image: mysql:5.7.22
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - payment-network
+    volumes:
+      - ${LOCAL_DATABASE_VOLUME}:/var/lib/mysql
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    links:
+      - mysql:mysql
+    ports:
+      - 8080:80
+    environment:
+      MYSQL_USERNAME: ${DB_USERNAME}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      PMA_HOST: mysql
+    networks:
+      - payment-network
+networks:
+  payment-network:
+    driver: bridge
